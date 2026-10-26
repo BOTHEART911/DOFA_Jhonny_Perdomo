@@ -137,33 +137,65 @@
   });
   $('zona').addEventListener('change', function () { programaBorrador(); avance(); marca('fZona', 'aZona', ''); });
 
-  /* ------------------------------------------------------------ documento: aviso temprano */
-  var tDoc, docVuelo = 0;
-  function revisarDoc() {
-    var doc = normDoc($('doc').value);
-    if (doc === docEstado.doc && docEstado.existe !== null) return pintaDoc();
-    docEstado = { doc: doc, existe: null };
-    if (doc.length < 5) { docVuelo++; marca('fDoc', 'aDoc', doc ? '' : 'Cédula o documento de identidad.', 'neutro'); return; }
-    if (!API) return;
+  /* ------------------------------------------------------------ PASO 1: el documento es la puerta
+     Nada más se muestra hasta que el servidor confirme que el documento no
+     tiene encuesta. Si ya la tiene, la persona no llena nada en vano. */
+  var docVuelo = 0;
+  function abrirResto(abrir) {
+    $('resto').hidden = !abrir;
+    $('cardDoc').classList.toggle('listo', abrir);
+    $('doc').readOnly = abrir;
+    $('btnVerif').hidden = abrir; $('btnCambiar').hidden = !abrir;
+    avance();
+  }
+  function verificar() {
+    var doc = normDoc($('doc').value), btn = $('btnVerif');
+    if (doc.length < 5 || doc.length > 12) { marca('fDoc', 'aDoc', 'El documento debe tener entre 5 y 12 dígitos.'); $('doc').focus(); return; }
+    if (!API) { toast('El sitio aún no está conectado al servidor.', true); return; }
+    if (docEstado.doc === doc && docEstado.existe === false) return abrirResto(true);
     var mio = ++docVuelo, t = performance.now();
-    marca('fDoc', 'aDoc', '<i class="giro"></i> Verificando…', 'neutro');
-    api('existe', { doc: doc }, { fondo: true }).then(function (j) {
-      if (mio !== docVuelo) return;               // el número cambió mientras tanto
+    btn.setAttribute('aria-busy', 'true'); btn.querySelector('span').textContent = 'Verificando…';
+    $('cardDoc').classList.remove('ocupado');
+    marca('fDoc', 'aDoc', '<i class="giro"></i> Revisando si ya respondió…', 'neutro');
+    api('existe', { doc: doc }).then(function (j) {
+      if (mio !== docVuelo) return;                 // el número cambió mientras tanto
       tm.existe = performance.now() - t;
       docEstado = { doc: doc, existe: !!j.data.existe };
       pintaDoc();
-    }).catch(function () { if (mio === docVuelo) { docEstado.existe = null; marca('fDoc', 'aDoc', '', 'neutro'); } });
+    }).catch(function (e) {
+      if (mio !== docVuelo || e.cortado) return;
+      marca('fDoc', 'aDoc', 'No se pudo verificar (' + (e.message || 'sin conexión') + '). Toque Verificar de nuevo.');
+    }).then(function () {
+      if (mio !== docVuelo) return;
+      btn.removeAttribute('aria-busy'); btn.querySelector('span').textContent = 'Verificar';
+    });
   }
   function pintaDoc() {
-    if (docEstado.existe === true) marca('fDoc', 'aDoc', '✕ Este documento ya tiene una encuesta registrada.', 'mal');
-    else if (docEstado.existe === false) marca('fDoc', 'aDoc', '✓ Documento sin encuesta: puede continuar.', 'bien');
+    if (docEstado.existe === true) {
+      abrirResto(false);
+      $('cardDoc').classList.add('ocupado');
+      marca('fDoc', 'aDoc', '<span class="aviso-dup">✕ Este documento ya tiene una encuesta registrada. No es necesario responder de nuevo.</span>', 'mal');
+    } else if (docEstado.existe === false) {
+      marca('fDoc', 'aDoc', '✓ Documento sin encuesta. Continúe con los datos y las preguntas.', 'bien');
+      abrirResto(true);
+      setTimeout(function () { try { $('nombre').focus({ preventScroll: true }); $('resto').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {} }, 60);
+    }
   }
   $('doc').addEventListener('input', function () {
     var limpio = $('doc').value.replace(/\D/g, '');
     if (limpio !== $('doc').value) $('doc').value = limpio;
-    clearTimeout(tDoc); tDoc = setTimeout(revisarDoc, 650); programaBorrador(); avance();
+    docVuelo++; $('cardDoc').classList.remove('ocupado');
+    $('btnVerif').removeAttribute('aria-busy'); $('btnVerif').querySelector('span').textContent = 'Verificar';
+    marca('fDoc', 'aDoc', 'Cédula o documento de identidad.', 'neutro');
+    programaBorrador();
   });
-  $('doc').addEventListener('blur', function () { clearTimeout(tDoc); revisarDoc(); });
+  $('doc').addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); verificar(); } });
+  $('btnVerif').addEventListener('click', verificar);
+  $('btnCambiar').addEventListener('click', function () {
+    docEstado = { doc: '', existe: null }; abrirResto(false);
+    marca('fDoc', 'aDoc', 'Cédula o documento de identidad.', 'neutro');
+    $('doc').focus(); $('doc').select();
+  });
 
   /* ------------------------------------------------------------ zonas: de fondo */
   function pintaZonas(lista) {
@@ -190,8 +222,7 @@
   function validar(d) {
     var primero = null;
     function mal(fid, aid, msg, foco) { marca(fid, aid, msg); if (!primero) primero = foco; }
-    if (d.doc.length < 5 || d.doc.length > 12) mal('fDoc', 'aDoc', 'El documento debe tener entre 5 y 12 dígitos.', $('doc'));
-    else if (docEstado.doc === d.doc && docEstado.existe === true) mal('fDoc', 'aDoc', '✕ Este documento ya tiene una encuesta registrada.', $('doc'));
+    if (!(docEstado.doc === d.doc && docEstado.existe === false)) { abrirResto(false); mal('fDoc', 'aDoc', 'Verifique primero el documento.', $('doc')); }
     if (d.nombre.length < 3) mal('fNombre', 'aNombre', 'Escriba el nombre completo.', $('nombre'));
     if (d.tel.length < 7 || d.tel.length > 10) mal('fTel', 'aTel', 'El teléfono debe tener entre 7 y 10 dígitos.', $('tel'));
     if (!d.zona) mal('fZona', 'aZona', 'Seleccione la residencia.', $('zona'));
@@ -243,7 +274,8 @@
     form.reset(); vota = ''; ponVota(''); docEstado = { doc: '', existe: null };
     preguntas.forEach(function (t, i) { t.style.height = ''; $('c' + i).textContent = ''; });
     ['Doc', 'Nombre', 'Tel', 'Zona', 'Vota'].forEach(function (k) { marca('f' + k, 'a' + k, ''); });
-    $('aDoc').textContent = 'Cédula o documento de identidad.';
+    docVuelo++; abrirResto(false); $('cardDoc').classList.remove('ocupado');
+    marca('fDoc', 'aDoc', 'Cédula o documento de identidad.', 'neutro');
     $('vListo').hidden = true; $('vForm').hidden = false; avance();
     window.scrollTo({ top: 0 }); $('doc').focus();
   });
@@ -258,6 +290,8 @@
     $('avance').hidden = admin;
     $('lnkAdmin').textContent = admin ? 'Ir a la encuesta' : 'Administración';
     $('lnkAdmin').setAttribute('href', admin ? '#' : '#admin');
+    $('btnAdmin').setAttribute('href', admin ? '#' : '#admin');
+    $('btnAdmin').title = admin ? 'Volver a la encuesta' : 'Resultados y Excel';
     if (admin) cargarAdmin();
   }
   var adminCargado = null;
@@ -279,5 +313,5 @@
   vista();
   requestAnimationFrame(function () { tm.pintura = performance.now(); });   // ms desde que se pidió la página
   cargarZonas();
-  if ($('doc').value) revisarDoc();
+  if (normDoc($('doc').value).length >= 5) verificar();   // borrador recuperado: se vuelve a verificar
 })();

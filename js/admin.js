@@ -65,7 +65,7 @@
   /* ------------------------------------------------------------ panel */
   function panel() {
     cont.innerHTML = '<div class="tabs" role="tablist">' +
-      [['resumen', 'Resumen'], ['encuestas', 'Encuestas'], ['respuestas', 'Respuestas'], ['herr', 'Descargas']].map(function (t) {
+      [['resumen', 'Resumen'], ['encuestas', 'Encuestas'], ['respuestas', 'Respuestas'], ['herr', 'Excel']].map(function (t) {
         return '<button class="tab" role="tab" data-tab="' + t[0] + '" aria-selected="' + (st.tab === t[0]) + '">' + t[1] + '</button>';
       }).join('') + '</div><div id="admCuerpo"></div>';
     cont.querySelectorAll('.tab').forEach(function (b) {
@@ -129,8 +129,10 @@
       '<div class="adm-cols"><div class="card"><h2>Por residencia</h2>' + barras(conteo(function (r) { return r[4]; }), 15) + '</div>' +
       '<div class="card"><h2>Por día (últimos 14)</h2>' + barras(dias, 14) + '</div></div>' +
       (regs.length > 1 ? '<div class="card"><h2>Por enlace de origen</h2>' + barras(regs, 10) + '</div>' : '') +
-      '<button class="btn btn-sec mas" id="admRef">' + IC.sync + '<span>Actualizar</span></button>';
+      '<div class="barra-acc" style="justify-content:center"><button class="btn btn-pri" id="admXlsR">' + IC.excel + '<span>Descargar Excel</span></button>' +
+      '<button class="btn btn-sec" id="admRef">' + IC.sync + '<span>Actualizar</span></button></div>';
     void d0;
+    document.getElementById('admXlsR').addEventListener('click', function () { descargarExcel(this); });
     document.getElementById('admRef').addEventListener('click', function () { var b = this; b.setAttribute('aria-busy', 'true'); cargarLista(true).then(function () { b.removeAttribute('aria-busy'); }); });
   }
 
@@ -222,6 +224,28 @@
       .catch(function (e) { if (!e.cortado && lista.isConnected) lista.innerHTML = '<div class="vacio">' + esc(e.message) + '</div>'; });
   }
 
+  /* ------------------------------------------------------------ Excel (se arma en el navegador) */
+  function descargarExcel(bx) {
+    if (bx.getAttribute('aria-busy')) return;
+    bx.setAttribute('aria-busy', 'true'); var sp = bx.querySelector('span'), txt = sp.textContent, t = performance.now();
+    var listo = st.lista ? Promise.resolve() : cargarLista();
+    listo.then(function () {
+      if (!st.lista || !st.lista.length) throw new Error('Todavía no hay encuestas para descargar.');
+      return Promise.all([completas(function (h, n) { sp.textContent = 'Preparando ' + h + ' / ' + n + '…'; }),
+        window.XLSX ? null : cargarScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js')]);
+    }).then(function (r) {
+      var filas = r[0], enc = ['FECHA', 'DOCUMENTO', 'NOMBRE', 'TELÉFONO', 'RESIDENCIA', 'VOTA EN FLANDES'].concat(st.preguntas.map(function (p, i) { return (i + 1) + '. ' + p; }), ['REGISTRO']);
+      var ws = XLSX.utils.aoa_to_sheet([enc].concat(filas));
+      ws['!cols'] = enc.map(function (h, i) { return { wch: i < 6 ? [19, 13, 30, 13, 24, 10][i] : (i === enc.length - 1 ? 16 : 45) }; });
+      var wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Encuestas');
+      var hoy = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota' }).format(new Date());
+      XLSX.writeFile(wb, 'DOFA_Encuestas_Jhonny_Perdomo_' + hoy + '.xlsx');
+      D.tm.excel = performance.now() - t;
+      D.toast('Excel descargado: ' + filas.length + ' encuestas.');
+    }).catch(function (e) { if (!e.cortado) D.toast(e.message || 'No se pudo armar el Excel.', true); })
+      .then(function () { bx.removeAttribute('aria-busy'); sp.textContent = txt; });
+  }
+
   /* ------------------------------------------------------------ descargas y herramientas */
   function pintarHerr(c) {
     c.innerHTML = '<div class="card"><h2>' + IC.excel + 'Descargar en Excel</h2><p class="ayuda" style="margin-bottom:12px">Todas las encuestas con las 13 respuestas, en un archivo .xlsx.</p>' +
@@ -230,25 +254,7 @@
       '<button class="btn btn-sec" id="admZonas">' + IC.sync + '<span>Sincronizar zonas</span></button></div>' +
       '<button class="btn btn-sec mas" id="admSalir">' + IC.salir + '<span>Cerrar sesión de administrador</span></button>';
     var bx = document.getElementById('admXls'), bz = document.getElementById('admZonas');
-    bx.addEventListener('click', function () {
-      if (bx.getAttribute('aria-busy')) return;
-      bx.setAttribute('aria-busy', 'true'); var sp = bx.querySelector('span'), t = performance.now();
-      var listo = st.lista ? Promise.resolve() : cargarLista();
-      listo.then(function () {
-        return Promise.all([completas(function (h, n) { sp.textContent = 'Preparando ' + h + ' / ' + n + '…'; }),
-          window.XLSX ? null : cargarScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js')]);
-      }).then(function (r) {
-        var filas = r[0], enc = ['FECHA', 'DOCUMENTO', 'NOMBRE', 'TELÉFONO', 'RESIDENCIA', 'VOTA EN FLANDES'].concat(st.preguntas.map(function (p, i) { return (i + 1) + '. ' + p; }), ['REGISTRO']);
-        var ws = XLSX.utils.aoa_to_sheet([enc].concat(filas));
-        ws['!cols'] = enc.map(function (h, i) { return { wch: i < 6 ? [19, 13, 30, 13, 24, 10][i] : (i === enc.length - 1 ? 16 : 45) }; });
-        var wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Encuestas');
-        var hoy = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota' }).format(new Date());
-        XLSX.writeFile(wb, 'DOFA_Encuestas_Jhonny_Perdomo_' + hoy + '.xlsx');
-        D.tm.excel = performance.now() - t;
-        D.toast('Excel descargado: ' + filas.length + ' encuestas.');
-      }).catch(function (e) { if (!e.cortado) D.toast(e.message || 'No se pudo armar el Excel.', true); })
-        .then(function () { bx.removeAttribute('aria-busy'); sp.textContent = 'Descargar Excel'; });
-    });
+    bx.addEventListener('click', function () { descargarExcel(bx); });
     bz.addEventListener('click', function () {
       if (bz.getAttribute('aria-busy')) return;
       bz.setAttribute('aria-busy', 'true');
