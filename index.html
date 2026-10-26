@@ -1,532 +1,320 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8"/>
-<title>Cadena de Valor</title>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800;900&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
-
-:root{
-  --primary:#06402B;
-  --primary-2:#04281C;
-  --primary-light:#0a6644;
-  --error:#dc2626;
-  --radius-card:20px;
-  --radius-input:14px;
-  --radius-pill:999px;
-  --card-border:1.5px solid rgba(6,64,43,.14);
-  --card-shadow:0 8px 32px rgba(6,64,43,.12);
-}
-*{box-sizing:border-box}
-html,body{
-  margin:0;padding:0;min-height:100%;
-  font-family:'IBM Plex Sans',system-ui,-apple-system,sans-serif;
-  color:#111;
-  background:url('https://res.cloudinary.com/dqqeavica/image/upload/v1753538930/FONDO_JHONNY_sugwsj.png') center/cover fixed no-repeat;
-}
-h1,h2,h3,h4{font-family:'Sora',sans-serif;text-align:center;margin:8px 0 12px}
-
-.container{max-width:760px;margin:0 auto;padding:16px}
-
-.card{
-  background:rgba(255,255,255,.92);
-  backdrop-filter:blur(16px);
-  border:var(--card-border);
-  border-radius:var(--radius-card);
-  box-shadow:var(--card-shadow);
-  padding:24px 20px 20px;
-  margin:16px auto;
-}
-
-.helper{color:#444;text-align:center;font-size:.95rem;margin:6px 0 14px}
-.muted{color:#666;font-size:.85rem}
-
-label{
-  display:block;
-  font-weight:700;font-size:.78rem;letter-spacing:.7px;text-transform:uppercase;
-  margin:14px 0 6px;color:var(--primary);
-}
-
-input,select,textarea{
-  width:100%;padding:12px;
-  border:1.5px solid rgba(6,64,43,.22);
-  border-radius:var(--radius-input);
-  background:rgba(255,255,255,.92);
-  font-family:'IBM Plex Sans',sans-serif;font-size:16px;
-  outline:none;transition:border-color .2s, box-shadow .2s;
-}
-input:focus,select:focus,textarea:focus{
-  background:#fff;border-color:var(--primary);
-  box-shadow:0 0 0 3px rgba(6,64,43,.10);
-}
-
-.check-grid{
-  display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;
-}
-.check-item{
-  display:inline-flex;align-items:center;gap:6px;
-  padding:8px 14px;border-radius:var(--radius-pill);
-  background:rgba(255,255,255,.85);
-  border:1.5px solid rgba(6,64,43,.22);
-  font-size:.88rem;color:var(--primary);font-weight:600;
-  cursor:pointer;transition:background .15s;
-}
-.check-item:hover{background:rgba(6,64,43,.06)}
-.check-item input{width:auto;margin:0;accent-color:var(--primary)}
-
-.radio-group{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
-.radio-group .check-item{font-weight:700}
-
-button{
-  width:100%;padding:13px;
-  border:1.5px solid rgba(6,64,43,.30);
-  border-radius:var(--radius-input);
-  background:rgba(255,255,255,.85);
-  font-weight:700;font-size:16px;cursor:pointer;
-  transition:transform .08s, background .18s, color .18s, box-shadow .18s;
-}
-button:hover{
-  background:var(--primary);color:#fff;border-color:var(--primary-2);
-  box-shadow:0 4px 16px rgba(6,64,43,.22);
-  transform:translateY(-1px);
-}
-.btn-primary{
-  background:linear-gradient(135deg,#0a6644 0%,#06402B 100%);
-  color:#fff;border-color:var(--primary-2);
-  box-shadow:0 4px 14px rgba(6,64,43,.28);
-}
-.btn-primary:hover{
-  background:linear-gradient(135deg,#0d7a52 0%,#04281C 100%);
-  box-shadow:0 6px 20px rgba(6,64,43,.36);
-}
-
-.section{
-  background:rgba(6,64,43,.04);
-  border:1.5px solid rgba(6,64,43,.10);
-  border-radius:14px;
-  padding:14px;margin-top:14px;
-  animation:fadeIn .3s ease;
-}
-.section h3{color:var(--primary);margin-top:0;text-align:left}
-
-.hidden{display:none !important}
-
-@keyframes fadeIn{
-  from{opacity:0;transform:translateY(-6px)}
-  to{opacity:1;transform:translateY(0)}
-}
-
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media (max-width:520px){.grid-2{grid-template-columns:1fr}}
-
-.loader{
-  position:fixed;inset:0;background:rgba(0,0,0,.45);
-  display:none;align-items:center;justify-content:center;z-index:9999;
-}
-.loader.show{display:flex}
-.spinner{
-  width:54px;height:54px;
-  border:5px solid rgba(255,255,255,.25);
-  border-top-color:#fff;border-radius:50%;
-  animation:spin .8s linear infinite;
-}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-.brand{width:200px;display:block;margin:14px auto 4px;border-radius:12px}
-.center{text-align:center}
-
-.swal2-popup{
-  border-radius:22px !important;
-  font-family:'IBM Plex Sans',sans-serif !important;
-}
-.swal2-title{font-family:'Sora',sans-serif !important;color:var(--primary) !important}
-.swal2-confirm{
-  background:linear-gradient(135deg,#0a6644,#06402B) !important;
-  border-radius:12px !important;
-}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#007BFF" />
+  <title>Encuesta ciudadana · Jhonny Perdomo</title>
+  <meta name="description" content="Encuesta ciudadana de Flandes, Tolima — Jhonny Perdomo." />
+  <meta property="og:title" content="Encuesta ciudadana · Jhonny Perdomo" />
+  <meta property="og:description" content="Su opinión construye Flandes." />
+  <meta property="og:image" content="img/logo.png" />
+  <link rel="icon" href="img/logo-192.png" />
+  <link rel="apple-touch-icon" href="img/logo-192.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://script.google.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+  <script src="js/marca.js"></script>
+  <script>try{var t=localStorage.getItem('jpdofa:tema');if(t==='oscuro'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('oscuro');}catch(e){}</script>
+  <link rel="stylesheet" href="css/estilo.css" />
 </head>
 <body>
+  <header class="top">
+    <div class="top-in">
+      <img src="img/logo-192.png" alt="" width="40" height="40" />
+      <div class="t"><b>Encuesta ciudadana</b><span id="subtit">Jhonny Perdomo · Flandes, Tolima</span></div>
+      <button class="icon-btn" id="btnTema" type="button" aria-label="Modo oscuro" title="Modo oscuro"></button>
+    </div>
+    <div class="avance" id="avance" aria-hidden="true"><i></i></div>
+  </header>
 
-<div class="loader" id="loader"><div class="spinner"></div></div>
-
-<div class="container">
-  <div class="card">
-    <h1 style="color:var(--primary);text-shadow:0 2px 2px rgba(3,23,50,.25)">CADENA DE VALOR</h1>
-    <p class="helper">Diligencia el formulario con tu información comercial. Cada identificación solo puede registrarse <b>una vez</b>.</p>
-
-    <form id="form-cv" autocomplete="off">
-
-      <label>1. Razón social</label>
-      <input id="razonSocial" type="text" placeholder="Nombre comercial o razón social" required />
-
-      <label>2. Número de identificación</label>
-      <input id="identificacion" type="tel" inputmode="numeric" placeholder="NIT o cédula (sin puntos)" required />
-
-      <label>3. Nombre del representante legal</label>
-      <input id="representanteLegal" type="text" required />
-
-      <label>4. Dirección comercial</label>
-      <input id="direccion" type="text" required />
-
-      <label>5. Correo electrónico</label>
-      <input id="correo" type="email" required />
-
-      <label>6. Número de celular</label>
-      <input id="celular" type="tel" inputmode="numeric" placeholder="10 dígitos" required />
-
-      <label>7. ¿Establecimiento formalizado?</label>
-      <div class="radio-group">
-        <label class="check-item"><input type="radio" name="formalizado" value="SI"> Sí</label>
-        <label class="check-item"><input type="radio" name="formalizado" value="NO"> No</label>
+  <main>
+  <section id="vForm">
+    <div class="hero">
+      <img src="img/logo-192.png" alt="Jhonny Perdomo" width="64" height="64" />
+      <div>
+        <h1>Su opinión construye Flandes</h1>
+        <p>Responda con tranquilidad. Cada persona responde una sola vez: el documento no se repite.</p>
       </div>
+    </div>
 
-      <label>8. Sector al que pertenece</label>
-      <select id="sector" required>
-        <option value="" disabled selected>Selecciona un sector</option>
-        <option value="Gastronómico">Gastronómico</option>
-        <option value="Alojamiento">Alojamiento / Hospedaje (urbano o rural)</option>
-        <option value="Agencia">Agencia de viajes y/o operadora</option>
-        <option value="Guia">Guía profesional</option>
-      </select>
-
-      <!-- ============ GASTRONÓMICO ============ -->
-      <div id="sec-gastro" class="section hidden">
-        <h3>Información Gastronómica</h3>
-
-        <label>¿Qué tipo de alimentos ofrece?</label>
-        <div class="check-grid">
-          <label class="check-item"><input type="checkbox" name="gastroTipos" value="Viudo de pescado"> Viudo de pescado</label>
-          <label class="check-item"><input type="checkbox" name="gastroTipos" value="Tamal"> Tamal</label>
-          <label class="check-item"><input type="checkbox" name="gastroTipos" value="Lechona"> Lechona</label>
-          <label class="check-item"><input type="checkbox" name="gastroTipos" value="Amasijos"> Amasijos</label>
+    <form id="form" novalidate autocomplete="off">
+      <div class="card">
+        <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2.2"/><path d="M5.8 16a3.4 3.4 0 0 1 6.4 0M14 9h4M14 13h4"/></svg>Datos de la persona</h2>
+        <div class="grid dos">
+          <label class="field" id="fDoc"><span>Documento <em>*</em></span>
+            <input class="input" id="doc" name="doc" inputmode="numeric" autocomplete="off" maxlength="16" placeholder="Solo números" />
+            <small class="ayuda" id="aDoc">Cédula o documento de identidad.</small>
+          </label>
+          <label class="field" id="fTel"><span>Teléfono <em>*</em></span>
+            <input class="input" id="tel" name="tel" type="tel" inputmode="numeric" maxlength="14" placeholder="Celular de 10 dígitos" />
+            <small class="ayuda" id="aTel"></small>
+          </label>
         </div>
-
-        <label>¿Prepara alimentos para la mesa?</label>
-        <div class="radio-group">
-          <label class="check-item"><input type="radio" name="gastroPreparaMesa" value="SI"> Sí</label>
-          <label class="check-item"><input type="radio" name="gastroPreparaMesa" value="NO"> No</label>
-        </div>
-
-        <label>¿Prepara alimentos para llevar?</label>
-        <div class="radio-group">
-          <label class="check-item"><input type="radio" name="gastroPreparaLlevar" value="SI"> Sí</label>
-          <label class="check-item"><input type="radio" name="gastroPreparaLlevar" value="NO"> No</label>
-        </div>
-
-        <label>¿Tiene registro INVIMA?</label>
-        <div class="radio-group">
-          <label class="check-item"><input type="radio" name="gastroInvima" value="SI"> Sí</label>
-          <label class="check-item"><input type="radio" name="gastroInvima" value="NO"> No</label>
-        </div>
-
-        <label>Capacidad de personas para atender en mesa</label>
-        <input id="gastroCapacidad" type="tel" inputmode="numeric" placeholder="Ej: 24" />
-
-        <label>¿Su personal cuenta con certificación de Manipulación de Alimentos vigente?</label>
-        <div class="radio-group">
-          <label class="check-item"><input type="radio" name="gastroCertManipulacion" value="SI"> Sí</label>
-          <label class="check-item"><input type="radio" name="gastroCertManipulacion" value="NO"> No</label>
-        </div>
-
-        <label>¿Le gustaría participar en algún evento gastronómico?</label>
-        <div class="radio-group">
-          <label class="check-item"><input type="radio" name="gastroParticipaEvento" value="SI"> Sí</label>
-          <label class="check-item"><input type="radio" name="gastroParticipaEvento" value="NO"> No</label>
-        </div>
-
-        <label>¿Por qué?</label>
-        <textarea id="gastroPorque" rows="2" placeholder="Cuéntanos brevemente"></textarea>
-
-        <label>¿Qué tipo de ayudas le gustaría para su negocio?</label>
-        <div class="check-grid">
-          <label class="check-item"><input type="checkbox" name="gastroAyudas" value="Set de seguridad (delantal, gorro, coge ollas)"> Set de seguridad</label>
-          <label class="check-item"><input type="checkbox" name="gastroAyudas" value="Menaje (ollas, pailas)"> Menaje (ollas, pailas)</label>
-          <label class="check-item"><input type="checkbox" name="gastroAyudas" value="Set de utensilios de cocina"> Utensilios de cocina</label>
-          <label class="check-item"><input type="checkbox" name="gastroAyudas" value="Menaje para la mesa (juego de mesa con sillas)"> Menaje para la mesa</label>
-          <label class="check-item"><input type="checkbox" name="gastroAyudas" value="Publicidad y mercadeo"> Publicidad y mercadeo</label>
-        </div>
-      </div>
-
-      <!-- ============ ALOJAMIENTO ============ -->
-      <div id="sec-aloj" class="section hidden">
-        <h3>Información de Alojamiento</h3>
-
-        <label>RNT (Registro Nacional de Turismo)</label>
-        <input id="alojRnt" type="text" placeholder="Número de RNT (si aplica)" />
-
-        <label>Servicios que ofrece</label>
-        <div class="check-grid">
-          <label class="check-item"><input type="checkbox" name="alojServicios" value="Wifi"> Wifi</label>
-          <label class="check-item"><input type="checkbox" name="alojServicios" value="Aire acondicionado"> Aire acondicionado</label>
-          <label class="check-item"><input type="checkbox" name="alojServicios" value="Ventilador"> Ventilador</label>
-          <label class="check-item"><input type="checkbox" name="alojServicios" value="Desayuno"> Desayuno</label>
-          <label class="check-item"><input type="checkbox" name="alojServicios" value="Parqueadero"> Parqueadero</label>
-          <label class="check-item"><input type="checkbox" name="alojServicios" value="Pet-Friendly"> Pet-Friendly</label>
-          <label class="check-item"><input type="checkbox" name="alojServicios" value="Piscina"> Piscina</label>
-          <label class="check-item"><input type="checkbox" name="alojServicios" value="Zonas verdes"> Zonas verdes</label>
-          <label class="check-item"><input type="checkbox" name="alojServicios" value="Lavandería"> Lavandería</label>
-          <label class="check-item"><input type="checkbox" name="alojServicios" value="Gimnasio"> Gimnasio</label>
-          <label class="check-item"><input type="checkbox" name="alojServicios" value="Servicio de Bar"> Bar</label>
-          <label class="check-item"><input type="checkbox" name="alojServicios" value="Servicio de restaurante"> Restaurante</label>
-        </div>
-
-        <label>Total de camas (capacidad del hotel)</label>
-        <input id="alojTotalCamas" type="tel" inputmode="numeric" />
-
-        <h4 style="text-align:left;color:var(--primary);margin-top:14px">Habitaciones por capacidad</h4>
-        <div class="grid-2">
-          <div>
-            <label>Para 2 personas</label>
-            <input id="alojHab2" type="tel" inputmode="numeric" placeholder="0" />
+        <div class="grid" style="margin-top:12px">
+          <label class="field" id="fNombre"><span>Nombre completo <em>*</em></span>
+            <input class="input" id="nombre" name="nombre" maxlength="120" autocomplete="off" placeholder="Nombres y apellidos" />
+            <small class="ayuda" id="aNombre"></small>
+          </label>
+          <label class="field" id="fZona"><span>Residencia <em>*</em></span>
+            <select class="input" id="zona" name="zona">
+              <option value="">Seleccione el barrio o zona…</option>
+            <option>ACAPULCO I</option>
+            <option>ACAPULCO II</option>
+            <option>AGUAMARINA</option>
+            <option>ALCALA I</option>
+            <option>ALFONSO LOPEZ</option>
+            <option>ALTAGRACIA I</option>
+            <option>ALTAGRACIA II</option>
+            <option>ALTAGRACIA IV</option>
+            <option>APROVITEF</option>
+            <option>ARAGON I</option>
+            <option>ARAGON II</option>
+            <option>ARAGON III</option>
+            <option>ARAGON IV</option>
+            <option>ARBOLEDA I</option>
+            <option>ARBOLEDA II</option>
+            <option>BALCONES DE ALEJANDRIA</option>
+            <option>BILBAO</option>
+            <option>CALA</option>
+            <option>CAMA</option>
+            <option>CAMALA</option>
+            <option>CANALES</option>
+            <option>CANCUN</option>
+            <option>CASA DEL SOL I</option>
+            <option>CASA DEL SOL II</option>
+            <option>CENTRO</option>
+            <option>COLEGIO I</option>
+            <option>COLEGIO II</option>
+            <option>COLEGIO III</option>
+            <option>DUBAI</option>
+            <option>EL JORDAN</option>
+            <option>EL PORTAL DEL RUBI</option>
+            <option>GAITAN</option>
+            <option>HANGARES</option>
+            <option>IQUEIMA</option>
+            <option>INVASION BRISAS DEL CARMEN</option>
+            <option>INVASION VILLA MAGDALENA</option>
+            <option>INVASION VILLA MARIANA</option>
+            <option>JARDINES DE BABILONIA</option>
+            <option>LA CAPILLA</option>
+            <option>LA CEIBA</option>
+            <option>LA ESPERANZA</option>
+            <option>LA PAZ</option>
+            <option>LA UNION</option>
+            <option>LAS ROSAS</option>
+            <option>LAS VILLAS</option>
+            <option>LLERAS</option>
+            <option>LIBERTADOR</option>
+            <option>LOS MANGOS I</option>
+            <option>LOS MANGOS II</option>
+            <option>LOS MANGOS III</option>
+            <option>LOS MANGOS IV</option>
+            <option>LOS MANGOS V</option>
+            <option>LOS MANGOS VI</option>
+            <option>LOS MANGOS VII</option>
+            <option>LOS PIJAOS</option>
+            <option>MINUTO DE DIOS</option>
+            <option>MIRADOR DE LA ESPERANZA</option>
+            <option>MIRADOR DEL SOL</option>
+            <option>MONACO</option>
+            <option>OBRERO</option>
+            <option>OBRERO DELIRIO</option>
+            <option>ORQUIDEAS I</option>
+            <option>ORQUIDEAS II</option>
+            <option>ORQUIDEAS REAL I</option>
+            <option>ORQUIDEAS REAL II</option>
+            <option>ORQUIDEAS REAL III</option>
+            <option>ORQUIDEAS REAL IV</option>
+            <option>PARADERO I</option>
+            <option>PARADERO II</option>
+            <option>PARAISO</option>
+            <option>PAKISTAN I</option>
+            <option>PAKISTAN II</option>
+            <option>PAKISTAN III</option>
+            <option>PALO VERDE</option>
+            <option>PARQUES DE ALEJANDRIA I</option>
+            <option>PARQUES DE ALEJANDRIA II</option>
+            <option>PARQUES DE ALEJANDRIA III</option>
+            <option>PARQUES DE ALEJANDRIA IV</option>
+            <option>PARQUES DE PAKISTAN I</option>
+            <option>PARQUES DE PAKISTAN II</option>
+            <option>PARQUES DE PAKISTAN III</option>
+            <option>PARQUES DE PAKISTAN IV</option>
+            <option>PARQUES DE PAKISTAN V</option>
+            <option>PORTAL DEL RUBY</option>
+            <option>PRADERAS DE PALMA REAL</option>
+            <option>PRADOS DE SAN REMO</option>
+            <option>PUERTA BLANCA</option>
+            <option>PUERTO BAHIA I</option>
+            <option>PUERTO BAHIA II</option>
+            <option>PUERTO DOMINGO</option>
+            <option>PUERTO MEDITERRANEO</option>
+            <option>QUINTAS DE SAN ESTEBAN</option>
+            <option>QUINTAS DE SAN FRANCISCO</option>
+            <option>QUINTAS DEL DIVINO NIÑO</option>
+            <option>QUINTAS FERROVIARIAS</option>
+            <option>RIVERAS DEL MAGDALENA</option>
+            <option>SAN ANDRES</option>
+            <option>SAN FELIPE DE BARAJAS</option>
+            <option>SAN FERNANDO DE SEGOVIA</option>
+            <option>SAN FRANCISCO</option>
+            <option>SAN LUIS</option>
+            <option>SANTA ANA</option>
+            <option>SANTA HAGIA SOTA</option>
+            <option>SANTA MARTHA</option>
+            <option>SANTA MONICA I</option>
+            <option>SANTA MONICA II</option>
+            <option>SINAI</option>
+            <option>SOL Y BRISA</option>
+            <option>TARQUI</option>
+            <option>TAYRONA</option>
+            <option>TERRAZAS DE ALEJANDRIA</option>
+            <option>TOPACIO</option>
+            <option>TRIANA</option>
+            <option>URBANIZACION ARRAYANES</option>
+            <option>URBANIZACION EL PALMAR</option>
+            <option>URBANIZACION EL PORTAL</option>
+            <option>URBANIZACION EL RUBY</option>
+            <option>URBANIZACION LOS ALMENDROS</option>
+            <option>URBANIZACION VILLA LUCIA</option>
+            <option>URBANIZACION VILLA MAGDALENA I</option>
+            <option>URBANIZACION VILLA MAGDALENA II</option>
+            <option>URBANIZACION VILLA MAGDALENA III</option>
+            <option>URBANIZACION VILLA MARIANA</option>
+            <option>VALLESUE</option>
+            <option>VENECIA I</option>
+            <option>VENECIA II</option>
+            <option>VENECIA III</option>
+            <option>VENECIA IV</option>
+            <option>VILLA DEL RIO I</option>
+            <option>VILLA DEL RIO II</option>
+            <option>VILLA DEL SOL</option>
+            <option>VILLA DE LAS PALMAS</option>
+            <option>VILLA ESPERANZA</option>
+            <option>VILLA LAS PALMAS</option>
+            <option>VILLA MEDINA</option>
+            <option>VILLAS DEL MEDITERANEO</option>
+            <option>N/A</option>
+            </select>
+            <small class="ayuda" id="aZona"></small>
+          </label>
+          <div class="field" id="fVota"><span>¿Vota en Flandes? <em>*</em></span>
+            <div class="pastillas" role="group" aria-label="¿Vota en Flandes?">
+              <button type="button" class="pastilla" data-vota="SI" aria-pressed="false">Sí</button>
+              <button type="button" class="pastilla" data-vota="NO" aria-pressed="false">No</button>
+            </div>
+            <small class="ayuda" id="aVota"></small>
           </div>
-          <div>
-            <label>Para 3 personas</label>
-            <input id="alojHab3" type="tel" inputmode="numeric" placeholder="0" />
-          </div>
-          <div>
-            <label>Para 4 personas</label>
-            <input id="alojHab4" type="tel" inputmode="numeric" placeholder="0" />
-          </div>
-          <div>
-            <label>Para 5 personas</label>
-            <input id="alojHab5" type="tel" inputmode="numeric" placeholder="0" />
-          </div>
-          <div>
-            <label>Para 6 personas o más</label>
-            <input id="alojHab6mas" type="tel" inputmode="numeric" placeholder="0" />
-          </div>
         </div>
+        <div class="trampa" aria-hidden="true"><label>Sitio web <input id="hp" tabindex="-1" autocomplete="off" /></label></div>
       </div>
 
-      <!-- ============ AGENCIA ============ -->
-      <div id="sec-agen" class="section hidden">
-        <h3>Información de Agencia</h3>
-
-        <label>RNT (Registro Nacional de Turismo)</label>
-        <input id="agenRnt" type="text" placeholder="Número de RNT (si aplica)" />
-
-        <label>¿Qué servicios ofrece?</label>
-        <textarea id="agenServicios" rows="2" placeholder="Describe los servicios"></textarea>
-
-        <label>Rutas o paquetes nacionales</label>
-        <textarea id="agenRutasNac" rows="2" placeholder="Ej: Cartagena, Eje cafetero..."></textarea>
-
-        <label>Rutas o paquetes internacionales</label>
-        <textarea id="agenRutasInt" rows="2" placeholder="Ej: Panamá, México..."></textarea>
+      <div class="card">
+        <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M9 10h6M9 14h4"/></svg>Preguntas</h2>
+      <div class="preg" id="pp0">
+        <label for="p0"><span class="n">1</span><span>¿Qué nombres ha escuchado como candidatos para la Alcaldía de Flandes?</span></label>
+        <textarea class="input" id="p0" name="p0" maxlength="2000" rows="3" placeholder="Escriba aquí la respuesta…"></textarea>
+        <div class="cuenta" id="c0"></div>
+      </div>
+      <div class="preg" id="pp1">
+        <label for="p1"><span class="n">2</span><span>¿Qué temas considera que están dejando a un lado los candidatos a la Alcaldía?</span></label>
+        <textarea class="input" id="p1" name="p1" maxlength="2000" rows="3" placeholder="Escriba aquí la respuesta…"></textarea>
+        <div class="cuenta" id="c1"></div>
+      </div>
+      <div class="preg" id="pp2">
+        <label for="p2"><span class="n">3</span><span>¿Conoce o ha escuchado hablar de Jhonny Perdomo?</span></label>
+        <textarea class="input" id="p2" name="p2" maxlength="2000" rows="3" placeholder="Escriba aquí la respuesta…"></textarea>
+        <div class="cuenta" id="c2"></div>
+      </div>
+      <div class="preg" id="pp3">
+        <label for="p3"><span class="n">4</span><span>Si lo conoce, ¿qué es lo que más le destaca o le gusta de él?</span></label>
+        <textarea class="input" id="p3" name="p3" maxlength="2000" rows="3" placeholder="Escriba aquí la respuesta…"></textarea>
+        <div class="cuenta" id="c3"></div>
+      </div>
+      <div class="preg" id="pp4">
+        <label for="p4"><span class="n">5</span><span>¿Qué duda o debilidad le genera Jhonny Perdomo como posible alcalde?</span></label>
+        <textarea class="input" id="p4" name="p4" maxlength="2000" rows="3" placeholder="Escriba aquí la respuesta…"></textarea>
+        <div class="cuenta" id="c4"></div>
+      </div>
+      <div class="preg" id="pp5">
+        <label for="p5"><span class="n">6</span><span>¿Qué características busca usted en el próximo alcalde de Flandes?</span></label>
+        <textarea class="input" id="p5" name="p5" maxlength="2000" rows="3" placeholder="Escriba aquí la respuesta…"></textarea>
+        <div class="cuenta" id="c5"></div>
+      </div>
+      <div class="preg" id="pp6">
+        <label for="p6"><span class="n">7</span><span>¿Cuáles son los temas que debe manejar el próximo alcalde?</span></label>
+        <textarea class="input" id="p6" name="p6" maxlength="2000" rows="3" placeholder="Escriba aquí la respuesta…"></textarea>
+        <div class="cuenta" id="c6"></div>
+      </div>
+      <div class="preg" id="pp7">
+        <label for="p7"><span class="n">8</span><span>¿Qué debería evitar Jhonny en su campaña?</span></label>
+        <textarea class="input" id="p7" name="p7" maxlength="2000" rows="3" placeholder="Escriba aquí la respuesta…"></textarea>
+        <div class="cuenta" id="c7"></div>
+      </div>
+      <div class="preg" id="pp8">
+        <label for="p8"><span class="n">9</span><span>¿Cuáles considera que son las principales fortalezas de Flandes?</span></label>
+        <textarea class="input" id="p8" name="p8" maxlength="2000" rows="3" placeholder="Escriba aquí la respuesta…"></textarea>
+        <div class="cuenta" id="c8"></div>
+      </div>
+      <div class="preg" id="pp9">
+        <label for="p9"><span class="n">10</span><span>¿Cuáles son las principales necesidades de Flandes actualmente?</span></label>
+        <textarea class="input" id="p9" name="p9" maxlength="2000" rows="3" placeholder="Escriba aquí la respuesta…"></textarea>
+        <div class="cuenta" id="c9"></div>
+      </div>
+      <div class="preg" id="pp10">
+        <label for="p10"><span class="n">11</span><span>¿Qué se ha prometido para Flandes que no se haya cumplido?</span></label>
+        <textarea class="input" id="p10" name="p10" maxlength="2000" rows="3" placeholder="Escriba aquí la respuesta…"></textarea>
+        <div class="cuenta" id="c10"></div>
+      </div>
+      <div class="preg" id="pp11">
+        <label for="p11"><span class="n">12</span><span>¿Qué espera usted de la Gobernación del Tolima para Flandes?</span></label>
+        <textarea class="input" id="p11" name="p11" maxlength="2000" rows="3" placeholder="Escriba aquí la respuesta…"></textarea>
+        <div class="cuenta" id="c11"></div>
+      </div>
+      <div class="preg" id="pp12">
+        <label for="p12"><span class="n">13</span><span>¿Lo que realmente necesita nuestro municipio es?</span></label>
+        <textarea class="input" id="p12" name="p12" maxlength="2000" rows="3" placeholder="Escriba aquí la respuesta…"></textarea>
+        <div class="cuenta" id="c12"></div>
+      </div>
       </div>
 
-      <!-- ============ GUÍA ============ -->
-      <div id="sec-guia" class="section hidden">
-        <h3>Información de Guía Profesional</h3>
-
-        <label>Número de Tarjeta Profesional</label>
-        <input id="guiaTarjeta" type="text" placeholder="Número de la tarjeta profesional" />
+      <div class="enviar">
+        <button class="btn btn-pri btn-bloque" id="btnEnviar" type="submit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>
+          <span>Registrar encuesta</span>
+        </button>
       </div>
-
-      <div style="margin-top:18px">
-        <button type="button" class="btn-primary" id="btn-guardar">Registrar</button>
-      </div>
-
     </form>
+  </section>
 
-    <p class="center muted" style="margin-top:14px">Copyright © <b>Cadena de Valor</b></p>
-  </div>
-</div>
+  <section id="vListo" hidden>
+    <div class="card exito">
+      <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+      <h2>¡Encuesta registrada!</h2>
+      <p id="listoTxt">Gracias por su tiempo.</p>
+      <button class="btn btn-pri" id="btnOtra" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        <span>Registrar otra encuesta</span>
+      </button>
+    </div>
+  </section>
 
-<script>
-/* ============ CONFIG ============ */
-const API_BASE = 'https://script.google.com/macros/s/AKfycby8knOfX1yB0tLjXd_bE-4pwEGvjl73ur7K_T7ncZj6MrDYUqOf6r1kXePooyeHMLv2mw/exec';
+  <section id="vAdmin" hidden></section>
+  </main>
 
-/* ============ Helpers ============ */
-const $ = (id) => document.getElementById(id);
-const loader = $('loader');
-function showLoader(){ loader.classList.add('show'); }
-function hideLoader(){ loader.classList.remove('show'); }
+  <footer>
+    <b>Oscar Polania</b>
+    <span class="sub">Experto en soluciones digitales</span>
+    <span class="sub" id="pieVer"></span>
+    <a href="#admin" id="lnkAdmin">Administración</a>
+  </footer>
 
-function getRadio(name){
-  const el = document.querySelector('input[name="'+name+'"]:checked');
-  return el ? el.value : '';
-}
-function getChecks(name){
-  return Array.from(document.querySelectorAll('input[name="'+name+'"]:checked')).map(e=>e.value);
-}
-function onlyDigits(v, max){
-  const s = String(v||'').replace(/\D/g,'');
-  return max ? s.slice(0,max) : s;
-}
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-/* ============ Sanitización ============ */
-['identificacion','celular','gastroCapacidad','alojTotalCamas','alojHab2','alojHab3','alojHab4','alojHab5','alojHab6mas']
-.forEach(id=>{
-  const el = $(id);
-  if(!el) return;
-  el.addEventListener('input', ()=>{ el.value = onlyDigits(el.value); });
-});
-
-/* ============ Mostrar sección por sector ============ */
-$('sector').addEventListener('change', ()=>{
-  const v = $('sector').value;
-  ['sec-gastro','sec-aloj','sec-agen','sec-guia'].forEach(id => $(id).classList.add('hidden'));
-  if(v === 'Gastronómico') $('sec-gastro').classList.remove('hidden');
-  if(v === 'Alojamiento')  $('sec-aloj').classList.remove('hidden');
-  if(v === 'Agencia')      $('sec-agen').classList.remove('hidden');
-  if(v === 'Guia')         $('sec-guia').classList.remove('hidden');
-});
-
-/* ============ Verificar duplicado al salir del input ============ */
-$('identificacion').addEventListener('blur', async ()=>{
-  const id = $('identificacion').value.trim();
-  if(!id) return;
-  try{
-    const r = await fetch(API_BASE + '?action=checkIdentificacion&identificacion=' + encodeURIComponent(id));
-    const j = await r.json();
-    if(j.ok && j.data && j.data.exists){
-      Swal.fire({
-        icon:'warning',
-        title:'Identificación ya registrada',
-        text:'Esta identificación ya fue registrada anteriormente. No es posible duplicar registros.'
-      });
-      $('identificacion').value = '';
-      $('identificacion').focus();
-    }
-  }catch(_){}
-});
-
-/* ============ Validación de correo ============ */
-function isEmail(s){
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(s||'').trim());
-}
-
-/* ============ Guardar ============ */
-$('btn-guardar').addEventListener('click', async ()=>{
-
-  // Validaciones básicas
-  const requeridos = [
-    {id:'razonSocial', label:'Razón social'},
-    {id:'identificacion', label:'Número de identificación'},
-    {id:'representanteLegal', label:'Representante legal'},
-    {id:'direccion', label:'Dirección comercial'},
-    {id:'correo', label:'Correo'},
-    {id:'celular', label:'Celular'}
-  ];
-
-  const faltantes = [];
-  for(const r of requeridos){
-    if(!String($(r.id).value||'').trim()) faltantes.push(r.label);
-  }
-  if(faltantes.length){
-    Swal.fire({icon:'warning', title:'Campos requeridos', html:'Faltan:<br><b>'+faltantes.join('<br>')+'</b>'});
-    return;
-  }
-
-  if(!/^\d{10}$/.test($('celular').value)){
-    Swal.fire({icon:'warning', title:'Celular inválido', text:'Debe tener 10 dígitos.'});
-    return;
-  }
-
-  if(!isEmail($('correo').value)){
-    Swal.fire({icon:'warning', title:'Correo inválido'});
-    return;
-  }
-
-  if(!$('sector').value){
-    Swal.fire({icon:'warning', title:'Selecciona un sector'});
-    return;
-  }
-
-  const sector = $('sector').value;
-
-  // Construir payload
-  const body = {
-    razonSocial:        $('razonSocial').value.trim(),
-    identificacion:     $('identificacion').value.trim(),
-    representanteLegal: $('representanteLegal').value.trim(),
-    direccion:          $('direccion').value.trim(),
-    correo:             $('correo').value.trim(),
-    celular:            $('celular').value.trim(),
-    formalizado:        getRadio('formalizado'),
-    sector:             sector
-  };
-
-  if(sector === 'Gastronómico'){
-    body.gastroTipos             = getChecks('gastroTipos');
-    body.gastroPreparaMesa       = getRadio('gastroPreparaMesa');
-    body.gastroPreparaLlevar     = getRadio('gastroPreparaLlevar');
-    body.gastroInvima            = getRadio('gastroInvima');
-    body.gastroCapacidad         = $('gastroCapacidad').value;
-    body.gastroCertManipulacion  = getRadio('gastroCertManipulacion');
-    body.gastroParticipaEvento   = getRadio('gastroParticipaEvento');
-    body.gastroPorque            = $('gastroPorque').value;
-    body.gastroAyudas            = getChecks('gastroAyudas');
-  }
-
-  if(sector === 'Alojamiento'){
-    body.alojRnt        = $('alojRnt').value;
-    body.alojServicios  = getChecks('alojServicios');
-    body.alojTotalCamas = $('alojTotalCamas').value;
-    body.alojHab2       = $('alojHab2').value;
-    body.alojHab3       = $('alojHab3').value;
-    body.alojHab4       = $('alojHab4').value;
-    body.alojHab5       = $('alojHab5').value;
-    body.alojHab6mas    = $('alojHab6mas').value;
-  }
-
-  if(sector === 'Agencia'){
-    body.agenRnt       = $('agenRnt').value;
-    body.agenServicios = $('agenServicios').value;
-    body.agenRutasNac  = $('agenRutasNac').value;
-    body.agenRutasInt  = $('agenRutasInt').value;
-  }
-
-  if(sector === 'Guia'){
-    body.guiaTarjeta = $('guiaTarjeta').value;
-  }
-
-  // Enviar
-  showLoader();
-  try{
-    const r = await fetch(API_BASE + '?action=guardarCadenaValor', {
-      method:'POST',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify(body)
-    });
-    const j = await r.json();
-    hideLoader();
-
-    if(!j.ok){
-      const msg = String(j.error||'');
-      if(msg.indexOf('DUPLICADO') !== -1){
-        Swal.fire({
-          icon:'warning',
-          title:'Identificación duplicada',
-          text:'Esta identificación ya fue registrada anteriormente.'
-        });
-        return;
-      }
-      Swal.fire({icon:'error', title:'Error', text: msg});
-      return;
-    }
-
-    await Swal.fire({
-      icon:'success',
-      title:'¡Registro exitoso!',
-      text:'Tu información fue guardada correctamente.',
-      timer:3000,
-      showConfirmButton:false
-    });
-
-    document.getElementById('form-cv').reset();
-    ['sec-gastro','sec-aloj','sec-agen','sec-guia'].forEach(id => $(id).classList.add('hidden'));
-
-  }catch(e){
-    hideLoader();
-    Swal.fire({icon:'error', title:'Error de conexión', text: String(e.message||e)});
-  }
-});
-</script>
-
+  <script src="js/version.js"></script>
+  <script src="js/red.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>
