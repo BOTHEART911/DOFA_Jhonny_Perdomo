@@ -290,8 +290,6 @@
     $('avance').hidden = admin;
     $('lnkAdmin').textContent = admin ? 'Ir a la encuesta' : 'Administración';
     $('lnkAdmin').setAttribute('href', admin ? '#' : '#admin');
-    $('btnAdmin').setAttribute('href', admin ? '#' : '#admin');
-    $('btnAdmin').title = admin ? 'Volver a la encuesta' : 'Resultados y Excel';
     if (admin) cargarAdmin();
   }
   var adminCargado = null;
