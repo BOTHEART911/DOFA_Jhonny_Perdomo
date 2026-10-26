@@ -51,8 +51,11 @@
       ev.preventDefault(); if (ocupado) return;
       var v = document.getElementById('admPinIn').value.trim(); if (!v) return;
       ocupado = true; b.setAttribute('aria-busy', 'true');
-      D.api('admin.entrar', {}, { metodo: 'POST', cuerpo: { pin: v } }).then(function (j) {
-        try { sessionStorage.setItem(K_TK, JSON.stringify(j.data)); } catch (e) {}
+      var t = performance.now();
+      D.api('admin.entrar', {}, { metodo: 'POST', cuerpo: { pin: v, conLista: 1 } }).then(function (j) {
+        try { sessionStorage.setItem(K_TK, JSON.stringify({ tk: j.data.tk, exp: j.data.exp })); } catch (e) {}
+        /* login y resumen en un solo viaje; si el backend no trae la lista, se pide aparte */
+        if (j.data.lista) return aplicarLista(j.data.lista, t).then(panel);
         panel();
       }).catch(function (e) { D.toast(e.message || 'No se pudo entrar.', true); })
         .then(function () { ocupado = false; b.removeAttribute('aria-busy'); });
@@ -75,16 +78,18 @@
     pintar();
     if (!st.lista) cargarLista();
   }
+  function aplicarLista(j, t) {
+    st.paginas = j.paginas; st.preguntas = j.preguntas || [];
+    return ungz(j.gz).then(function (o) {
+      st.lista = o.filas.slice().reverse();        // lo más reciente primero
+      st.completas = null; st.cargaCompletas = null;
+      D.tm.adminLista = performance.now() - t;
+    });
+  }
   function cargarLista(forzar) {
     var t = performance.now();
     return pedir('admin.lista', forzar ? { _: Date.now() } : {}).then(function (j) {
-      st.paginas = j.paginas; st.preguntas = j.preguntas || [];
-      return ungz(j.gz).then(function (o) {
-        st.lista = o.filas.slice().reverse();      // lo más reciente primero
-        st.completas = null; st.cargaCompletas = null;
-        D.tm.adminLista = performance.now() - t;
-        pintar();
-      });
+      return aplicarLista(j, t).then(pintar);
     }).catch(function (e) { if (!e.cortado && e.code !== 'SESION') { cuerpo().innerHTML = '<div class="vacio">' + esc(e.message) + '</div>'; } });
   }
   function cuerpo() { return document.getElementById('admCuerpo'); }
