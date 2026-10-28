@@ -35,41 +35,24 @@
       <img src="img/logo-192.png" alt="Jhonny Perdomo" width="64" height="64" />
       <div>
         <h1>Su opinión construye Flandes</h1>
-        <p>Responda con tranquilidad. Cada persona responde una sola vez: el documento no se repite.</p>
+        <p>Responda con tranquilidad. La encuesta es anónima: no le pedimos datos personales.</p>
       </div>
     </div>
 
     <form id="form" novalidate autocomplete="off">
-      <div class="card" id="cardDoc">
-        <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg>Paso 1 · Verifique el documento</h2>
-        <p class="ayuda" style="margin:-4px 0 12px">Primero revisamos que esta persona no haya respondido antes.</p>
-        <div class="verif">
-          <label class="field" id="fDoc"><span>Documento <em>*</em></span>
-            <input class="input" id="doc" name="doc" inputmode="numeric" autocomplete="off" maxlength="16" placeholder="Solo números" />
-          </label>
-          <button class="btn btn-pri" id="btnVerif" type="button"><span>Verificar</span></button>
-          <button class="btn btn-sec" id="btnCambiar" type="button" hidden><span>Cambiar</span></button>
+      <div class="card" id="cardVive">
+        <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></svg>Paso 1 · ¿Vive en Flandes?</h2>
+        <div class="field" id="fVive">
+          <div class="pastillas" role="group" aria-label="¿Vive en Flandes?">
+            <button type="button" class="pastilla" data-vive="SI" aria-pressed="false">Sí</button>
+            <button type="button" class="pastilla" data-vive="NO" aria-pressed="false">No</button>
+          </div>
+          <small class="ayuda" id="aVive"></small>
         </div>
-        <small class="ayuda" id="aDoc">Cédula o documento de identidad.</small>
-      </div>
-
-      <div id="resto" hidden>
-      <div class="card">
-        <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2.2"/><path d="M5.8 16a3.4 3.4 0 0 1 6.4 0M14 9h4M14 13h4"/></svg>Paso 2 · Datos de la persona</h2>
-        <div class="grid dos">
-          <label class="field" id="fNombre"><span>Nombre completo <em>*</em></span>
-            <input class="input" id="nombre" name="nombre" maxlength="120" autocomplete="off" placeholder="Nombres y apellidos" />
-            <small class="ayuda" id="aNombre"></small>
-          </label>
-          <label class="field" id="fTel"><span>Teléfono <em>*</em></span>
-            <input class="input" id="tel" name="tel" type="tel" inputmode="numeric" maxlength="14" placeholder="Celular de 10 dígitos" />
-            <small class="ayuda" id="aTel"></small>
-          </label>
-        </div>
-        <div class="grid" style="margin-top:12px">
-          <label class="field" id="fZona"><span>Residencia <em>*</em></span>
+        <div id="bloqueZona" hidden>
+          <label class="field" id="fZona" style="margin-top:12px"><span>Barrio, vereda o conjunto <em>*</em></span>
             <select class="input" id="zona" name="zona">
-              <option value="">Seleccione el barrio o zona…</option>
+              <option value="">Seleccione dónde vive…</option>
             <option>ACAPULCO I</option>
             <option>ACAPULCO II</option>
             <option>AGUAMARINA</option>
@@ -206,23 +189,16 @@
             <option>VILLA LAS PALMAS</option>
             <option>VILLA MEDINA</option>
             <option>VILLAS DEL MEDITERANEO</option>
-            <option>N/A</option>
             </select>
             <small class="ayuda" id="aZona"></small>
           </label>
-          <div class="field" id="fVota"><span>¿Vota en Flandes? <em>*</em></span>
-            <div class="pastillas" role="group" aria-label="¿Vota en Flandes?">
-              <button type="button" class="pastilla" data-vota="SI" aria-pressed="false">Sí</button>
-              <button type="button" class="pastilla" data-vota="NO" aria-pressed="false">No</button>
-            </div>
-            <small class="ayuda" id="aVota"></small>
-          </div>
         </div>
         <div class="trampa" aria-hidden="true"><label>Sitio web <input id="hp" tabindex="-1" autocomplete="off" /></label></div>
       </div>
 
+      <div id="resto" hidden>
       <div class="card">
-        <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M9 10h6M9 14h4"/></svg>Paso 3 · Preguntas</h2>
+        <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M9 10h6M9 14h4"/></svg>Paso 2 · Preguntas</h2>
       <div class="preg" id="pp0">
         <label for="p0"><span class="n">1</span><span>¿Qué nombres ha escuchado como candidatos para la Alcaldía de Flandes?</span></label>
         <textarea class="input" id="p0" name="p0" maxlength="2000" rows="3" placeholder="Escriba aquí la respuesta…"></textarea>

@@ -3,8 +3,8 @@
  * ----------------------------------------------------------------------------
  *  · El formulario es HTML estático: se pinta sin esperar al servidor. Las
  *    zonas vienen sembradas en el HTML y se actualizan de fondo (ruta zonas).
- *  · Documento: aviso temprano de duplicado (ruta existe, de fondo, con
- *    corte si el número cambia). La verdad la pone el backend bajo candado.
+ *  · Encuesta anónima (27/10/2026): "¿Vive en Flandes?" abre el barrio,
+ *    vereda o conjunto (solo con SÍ) y luego las 13 preguntas.
  *  · Guardar: botón ocupado + escudo desde el primer toque, rid fijo hasta
  *    que la encuesta quede (reintentos solo con ese rid, en red.js).
  *  · Borrador en este dispositivo: si se recarga o se cierra, no se pierde.
@@ -72,21 +72,21 @@
     }).catch(function () {});
   })();
 
-  /* ------------------------------------------------------------ estado del formulario */
-  var form = $('form'), vota = '', ridActual = ls.get(K.rid) || '';
-  var docEstado = { doc: '', existe: null };
+  /* ------------------------------------------------------------ estado del formulario
+     27/10/2026 · v3: encuesta anónima. Paso 1 "¿Vive en Flandes?": con SÍ se
+     pide el barrio, vereda o conjunto; con NO pasa directo a las preguntas. */
+  var form = $('form'), vive = '', ridActual = ls.get(K.rid) || '';
   var preguntas = []; for (var i = 0; i < N_PREG; i++) preguntas.push($('p' + i));
   var REF = (new URLSearchParams(location.search).get('ref') || '').slice(0, 40);
 
-  function normDoc(s) { return String(s || '').replace(/\D/g, '').replace(/^0+/, ''); }
   function datos() {
     return {
-      doc: normDoc($('doc').value), nombre: $('nombre').value.trim(), tel: $('tel').value.replace(/\D/g, ''),
-      zona: $('zona').value, vota: vota, r: preguntas.map(function (t) { return t.value.trim(); }),
+      vive: vive, zona: vive === 'SI' ? $('zona').value : '',
+      r: preguntas.map(function (t) { return t.value.trim(); }),
       hp: $('hp').value, ref: REF
     };
   }
-  function sucio() { var d = datos(); return !!(d.doc || d.nombre || d.tel || d.zona || d.vota || d.r.join('')); }
+  function sucio() { var d = datos(); return !!(d.vive || d.zona || d.r.join('')); }
   window.RED_NO_RECARGAR = function () { return false; };   // el borrador se guarda: recargar no pierde nada
 
   /* ------------------------------------------------------------ borrador local */
@@ -99,22 +99,12 @@
   function restaurar() {
     var b = ls.get(K.borrador); if (!b) return false;
     try { b = JSON.parse(b); } catch (e) { return false; }
-    $('doc').value = b.doc || ''; $('nombre').value = b.nombre || ''; $('tel').value = b.tel || '';
+    if (!b || (!b.vive && !(b.r || []).join(''))) return false;   // borrador de la versión anterior
     if (b.zona) $('zona').value = b.zona;
-    if (b.vota) ponVota(b.vota);
+    if (b.vive) ponVive(b.vive, true);
     (b.r || []).forEach(function (v, i) { if (preguntas[i]) preguntas[i].value = v || ''; });
     return true;
   }
-
-  /* ------------------------------------------------------------ vota (pastillas) */
-  function ponVota(v) {
-    vota = v;
-    document.querySelectorAll('.pastilla').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.vota === v ? 'true' : 'false'); });
-    marca('fVota', 'aVota', '');
-  }
-  document.querySelectorAll('.pastilla').forEach(function (b) {
-    b.addEventListener('click', function () { ponVota(b.dataset.vota); programaBorrador(); avance(); });
-  });
 
   /* ------------------------------------------------------------ ayudas y avance */
   function marca(fid, aid, msg, tipo) {
@@ -123,86 +113,47 @@
     if (a) { a.className = 'ayuda' + (msg && tipo !== 'neutro' ? ' ' + (tipo || 'mal') : ''); a.innerHTML = msg; }
   }
   function avance() {
-    var d = datos(), n = 0, tot = 5 + N_PREG;
-    if (d.doc.length >= 5) n++; if (d.nombre.length >= 3) n++; if (d.tel.length >= 7) n++; if (d.zona) n++; if (d.vota) n++;
+    var d = datos(), n = 0, tot = (vive === 'SI' ? 2 : 1) + N_PREG;
+    if (d.vive) n++; if (vive === 'SI' && d.zona) n++;
     d.r.forEach(function (t, i) { var ok = t.length > 0; if (ok) n++; $('pp' + i).classList.toggle('lista', ok); });
     document.querySelector('#avance i').style.width = Math.round(100 * n / tot) + '%';
   }
+
+  /* ------------------------------------------------------------ PASO 1: ¿vive en Flandes? */
+  function ponVive(v, silencio) {
+    vive = v;
+    document.querySelectorAll('[data-vive]').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.vive === v ? 'true' : 'false'); });
+    marca('fVive', 'aVive', '');
+    $('bloqueZona').hidden = v !== 'SI';
+    $('resto').hidden = !v;
+    avance();
+    if (silencio) return;
+    setTimeout(function () {
+      try {
+        if (v === 'SI' && !$('zona').value) { $('zona').focus({ preventScroll: true }); $('bloqueZona').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+        else { $('resto').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+      } catch (e) {}
+    }, 60);
+  }
+  document.querySelectorAll('[data-vive]').forEach(function (b) {
+    b.addEventListener('click', function () { ponVive(b.dataset.vive); programaBorrador(); });
+  });
+  $('zona').addEventListener('change', function () {
+    programaBorrador(); avance(); marca('fZona', 'aZona', '');
+    if ($('zona').value) setTimeout(function () { try { $('resto').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {} }, 60);
+  });
   preguntas.forEach(function (t, i) {
     function crecer() { t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight + 2, 420) + 'px'; }
     t.addEventListener('input', function () { crecer(); $('c' + i).textContent = t.value.length > 1500 ? t.value.length + ' / 2000' : ''; programaBorrador(); avance(); });
   });
-  ['nombre', 'tel', 'zona'].forEach(function (id) {
-    $(id).addEventListener('input', function () { programaBorrador(); avance(); marca('f' + id.charAt(0).toUpperCase() + id.slice(1), 'a' + id.charAt(0).toUpperCase() + id.slice(1), ''); });
-  });
-  $('zona').addEventListener('change', function () { programaBorrador(); avance(); marca('fZona', 'aZona', ''); });
-
-  /* ------------------------------------------------------------ PASO 1: el documento es la puerta
-     Nada más se muestra hasta que el servidor confirme que el documento no
-     tiene encuesta. Si ya la tiene, la persona no llena nada en vano. */
-  var docVuelo = 0;
-  function abrirResto(abrir) {
-    $('resto').hidden = !abrir;
-    $('cardDoc').classList.toggle('listo', abrir);
-    $('doc').readOnly = abrir;
-    $('btnVerif').hidden = abrir; $('btnCambiar').hidden = !abrir;
-    avance();
-  }
-  function verificar() {
-    var doc = normDoc($('doc').value), btn = $('btnVerif');
-    if (doc.length < 5 || doc.length > 12) { marca('fDoc', 'aDoc', 'El documento debe tener entre 5 y 12 dígitos.'); $('doc').focus(); return; }
-    if (!API) { toast('El sitio aún no está conectado al servidor.', true); return; }
-    if (docEstado.doc === doc && docEstado.existe === false) return abrirResto(true);
-    var mio = ++docVuelo, t = performance.now();
-    btn.setAttribute('aria-busy', 'true'); btn.querySelector('span').textContent = 'Verificando…';
-    $('cardDoc').classList.remove('ocupado');
-    marca('fDoc', 'aDoc', '<i class="giro"></i> Revisando si ya respondió…', 'neutro');
-    api('existe', { doc: doc }).then(function (j) {
-      if (mio !== docVuelo) return;                 // el número cambió mientras tanto
-      tm.existe = performance.now() - t;
-      docEstado = { doc: doc, existe: !!j.data.existe };
-      pintaDoc();
-    }).catch(function (e) {
-      if (mio !== docVuelo || e.cortado) return;
-      marca('fDoc', 'aDoc', 'No se pudo verificar (' + (e.message || 'sin conexión') + '). Toque Verificar de nuevo.');
-    }).then(function () {
-      if (mio !== docVuelo) return;
-      btn.removeAttribute('aria-busy'); btn.querySelector('span').textContent = 'Verificar';
-    });
-  }
-  function pintaDoc() {
-    if (docEstado.existe === true) {
-      abrirResto(false);
-      $('cardDoc').classList.add('ocupado');
-      marca('fDoc', 'aDoc', '<span class="aviso-dup">✕ Este documento ya tiene una encuesta registrada. No es necesario responder de nuevo.</span>', 'mal');
-    } else if (docEstado.existe === false) {
-      marca('fDoc', 'aDoc', '✓ Documento sin encuesta. Continúe con los datos y las preguntas.', 'bien');
-      abrirResto(true);
-      setTimeout(function () { try { $('nombre').focus({ preventScroll: true }); $('resto').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {} }, 60);
-    }
-  }
-  $('doc').addEventListener('input', function () {
-    var limpio = $('doc').value.replace(/\D/g, '');
-    if (limpio !== $('doc').value) $('doc').value = limpio;
-    docVuelo++; $('cardDoc').classList.remove('ocupado');
-    $('btnVerif').removeAttribute('aria-busy'); $('btnVerif').querySelector('span').textContent = 'Verificar';
-    marca('fDoc', 'aDoc', 'Cédula o documento de identidad.', 'neutro');
-    programaBorrador();
-  });
-  $('doc').addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); verificar(); } });
-  $('btnVerif').addEventListener('click', verificar);
-  $('btnCambiar').addEventListener('click', function () {
-    docEstado = { doc: '', existe: null }; abrirResto(false);
-    marca('fDoc', 'aDoc', 'Cédula o documento de identidad.', 'neutro');
-    $('doc').focus(); $('doc').select();
-  });
 
   /* ------------------------------------------------------------ zonas: de fondo */
   function pintaZonas(lista) {
+    lista = lista.filter(function (z) { return z && z !== 'N/A'; });
     var sel = $('zona'), actual = sel.value, ya = [];
     for (var i = 1; i < sel.options.length; i++) ya.push(sel.options[i].text);
     if (ya.join('|') === lista.join('|')) return;
-    var html = '<option value="">Seleccione el barrio o zona…</option>';
+    var html = '<option value="">Seleccione dónde vive…</option>';
     lista.forEach(function (z) { var e = z.replace(/&/g, '&amp;').replace(/</g, '&lt;'); html += '<option>' + e + '</option>'; });
     sel.innerHTML = html;
     if (actual && lista.indexOf(actual) >= 0) sel.value = actual;
@@ -220,14 +171,16 @@
 
   /* ------------------------------------------------------------ validar y guardar */
   function validar(d) {
-    var primero = null;
-    function mal(fid, aid, msg, foco) { marca(fid, aid, msg); if (!primero) primero = foco; }
-    if (!(docEstado.doc === d.doc && docEstado.existe === false)) { abrirResto(false); mal('fDoc', 'aDoc', 'Verifique primero el documento.', $('doc')); }
-    if (d.nombre.length < 3) mal('fNombre', 'aNombre', 'Escriba el nombre completo.', $('nombre'));
-    if (d.tel.length < 7 || d.tel.length > 10) mal('fTel', 'aTel', 'El teléfono debe tener entre 7 y 10 dígitos.', $('tel'));
-    if (!d.zona) mal('fZona', 'aZona', 'Seleccione la residencia.', $('zona'));
-    if (!d.vota) mal('fVota', 'aVota', 'Indique si vota en Flandes.', document.querySelector('.pastilla'));
-    if (primero) { primero.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(function () { try { primero.focus({ preventScroll: true }); } catch (e) {} }, 300); }
+    var primero = null, msg = 'Revise los campos marcados en rojo.';
+    function mal(fid, aid, txt, foco) { marca(fid, aid, txt); if (!primero) primero = foco; }
+    if (!d.vive) mal('fVive', 'aVive', 'Indique si vive en Flandes.', document.querySelector('[data-vive]'));
+    else if (d.vive === 'SI' && !d.zona) mal('fZona', 'aZona', 'Seleccione el barrio, vereda o conjunto.', $('zona'));
+    else if (!d.r.join('')) { primero = preguntas[0]; msg = 'Responda al menos una pregunta.'; }
+    if (primero) {
+      toast(msg, true);
+      primero.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(function () { try { primero.focus({ preventScroll: true }); } catch (e) {} }, 300);
+    }
     return !primero;
   }
 
@@ -236,7 +189,7 @@
     ev.preventDefault();
     if (enviando) return;                          // escudo: nada de doble envío
     var d = datos();
-    if (!validar(d)) { toast('Revise los campos marcados en rojo.', true); return; }
+    if (!validar(d)) return;
     if (!API) { toast('El sitio aún no está conectado al servidor.', true); return; }
     enviando = true;
     var btn = $('btnEnviar'), escudo = document.createElement('div');
@@ -244,7 +197,7 @@
     escudo.className = 'escudo'; document.body.appendChild(escudo);
     if (!ridActual) { ridActual = 'e' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10); ls.set(K.rid, ridActual); }
     var t = performance.now();
-    d.tm = { pintura: tm.pintura, zonas: tm.zonas, existe: tm.existe, guardado: tm.ultimoGuardado };
+    d.tm = { pintura: tm.pintura, zonas: tm.zonas, guardado: tm.ultimoGuardado };
     api('registrar', {}, { metodo: 'POST', cuerpo: { datos: d }, rid: ridActual }).then(function (j) {
       tm.ultimoGuardado = performance.now() - t;
       ridActual = ''; ls.del(K.rid); ls.del(K.borrador);
@@ -253,15 +206,12 @@
       document.querySelector('#avance i').style.width = '100%';
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }).catch(function (e) {
-      if (e.code === 'DUPLICADO') {
-        ridActual = ''; ls.del(K.rid);
-        docEstado = { doc: d.doc, existe: true }; pintaDoc();
-        $('doc').scrollIntoView({ behavior: 'smooth', block: 'center' });
-        toast('Ese documento ya tiene encuesta. No se creó otra.', true);
-      } else if (e.red || e.tiempo || e.eco) {
+      if (e.red || e.tiempo || e.eco) {
         toast('Sin conexión estable. La encuesta sigue aquí: toque Registrar de nuevo.', true);
       } else {
         if (e.code && e.code !== 'OCUPADO') { ridActual = ''; ls.del(K.rid); }
+        if (e.code === 'ZONA') marca('fZona', 'aZona', e.message);
+        if (e.code === 'VIVE') marca('fVive', 'aVive', e.message);
         toast(e.message || 'No se pudo guardar.', true);
       }
     }).then(function () {
@@ -271,13 +221,13 @@
   });
 
   $('btnOtra').addEventListener('click', function () {
-    form.reset(); vota = ''; ponVota(''); docEstado = { doc: '', existe: null };
+    form.reset(); vive = '';
+    document.querySelectorAll('[data-vive]').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
+    $('bloqueZona').hidden = true; $('resto').hidden = true;
     preguntas.forEach(function (t, i) { t.style.height = ''; $('c' + i).textContent = ''; });
-    ['Doc', 'Nombre', 'Tel', 'Zona', 'Vota'].forEach(function (k) { marca('f' + k, 'a' + k, ''); });
-    docVuelo++; abrirResto(false); $('cardDoc').classList.remove('ocupado');
-    marca('fDoc', 'aDoc', 'Cédula o documento de identidad.', 'neutro');
+    ['Vive', 'Zona'].forEach(function (k) { marca('f' + k, 'a' + k, ''); });
     $('vListo').hidden = true; $('vForm').hidden = false; avance();
-    window.scrollTo({ top: 0 }); $('doc').focus();
+    window.scrollTo({ top: 0 });
   });
 
   /* ------------------------------------------------------------ vistas: formulario / administración */
@@ -311,5 +261,4 @@
   vista();
   requestAnimationFrame(function () { tm.pintura = performance.now(); });   // ms desde que se pidió la página
   cargarZonas();
-  if (normDoc($('doc').value).length >= 5) verificar();   // borrador recuperado: se vuelve a verificar
 })();

@@ -16,6 +16,7 @@
     sync: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5M3 21v-5h5"/></svg>',
     salir: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>',
     candado: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
+    casa: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></svg>',
     atras: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>'
   };
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
@@ -117,16 +118,17 @@
   function pintarResumen(c) {
     var L = st.lista, tot = L.length, si = 0, hoy = 0, d0 = new Date().toISOString().slice(0, 10);
     var hoyCo = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota' }).format(new Date());
-    L.forEach(function (r) { if (r[5] === 'SI') si++; if (String(r[0]).slice(0, 10) === hoyCo) hoy++; });
+    L.forEach(function (r) { if (r[1] === 'SI') si++; if (String(r[0]).slice(0, 10) === hoyCo) hoy++; });
     var pct = tot ? Math.round(100 * si / tot) : 0;
     var dias = conteo(function (r) { return String(r[0]).slice(0, 10); }).sort(function (a, b) { return a[0] < b[0] ? 1 : -1; }).slice(0, 14);
-    var regs = conteo(function (r) { return r[7]; });
+    var regs = conteo(function (r) { return r[4]; });
+    var zonas = conteo(function (r) { return r[1] === 'SI' ? r[2] : ''; }).filter(function (p) { return p[0] !== '—'; });
     c.innerHTML = '<div class="kpis">' +
       '<div class="kpi"><small>Encuestas</small><b>' + tot + '</b><i>en total</i></div>' +
-      '<div class="kpi"><small>Votan en Flandes</small><b>' + si + '</b><i>' + pct + ' %</i></div>' +
-      '<div class="kpi"><small>No votan en Flandes</small><b>' + (tot - si) + '</b><i>' + (tot ? 100 - pct : 0) + ' %</i></div>' +
+      '<div class="kpi"><small>Viven en Flandes</small><b>' + si + '</b><i>' + pct + ' %</i></div>' +
+      '<div class="kpi"><small>No viven en Flandes</small><b>' + (tot - si) + '</b><i>' + (tot ? 100 - pct : 0) + ' %</i></div>' +
       '<div class="kpi"><small>Hoy</small><b>' + hoy + '</b><i>' + hoyCo + '</i></div></div>' +
-      '<div class="adm-cols"><div class="card"><h2>Por residencia</h2>' + barras(conteo(function (r) { return r[4]; }), 15) + '</div>' +
+      '<div class="adm-cols"><div class="card"><h2>Por barrio, vereda o conjunto</h2>' + barras(zonas, 15) + '</div>' +
       '<div class="card"><h2>Por día (últimos 14)</h2>' + barras(dias, 14) + '</div></div>' +
       (regs.length > 1 ? '<div class="card"><h2>Por enlace de origen</h2>' + barras(regs, 10) + '</div>' : '') +
       '<div class="barra-acc" style="justify-content:center"><button class="btn btn-pri" id="admXlsR">' + IC.excel + '<span>Descargar Excel</span></button>' +
@@ -141,20 +143,20 @@
   function filtradas() {
     var q = sinTilde(st.filtro).trim();
     return st.lista.filter(function (r) {
-      if (st.vota && r[5] !== st.vota) return false;
+      if (st.vota && r[1] !== st.vota) return false;
       if (!q) return true;
-      return sinTilde(r[1] + ' ' + r[2] + ' ' + r[3] + ' ' + r[4]).indexOf(q) >= 0;
+      return sinTilde(r[2] + ' ' + r[6] + ' ' + r[0]).indexOf(q) >= 0;
     });
   }
-  function iniciales(n) { var p = String(n || '').split(/\s+/).filter(Boolean); return ((p[0] || '')[0] || '') + ((p[1] || '')[0] || ''); }
+  function lugar(r) { return r[1] === 'SI' ? (r[2] || 'Flandes') : 'No vive en Flandes'; }
   function filaHtml(r, i) {
-    return '<button class="fila" data-i="' + i + '"><span class="av">' + esc(iniciales(r[2])) + '</span><span class="tx"><b>' + esc(r[2]) + '</b>' +
-      '<span>CC ' + esc(r[1]) + ' · ' + esc(r[4]) + ' · ' + esc(String(r[0]).slice(0, 16)) + '</span></span>' +
-      '<span class="chip ' + (r[5] === 'SI' ? 'si' : 'no') + '">' + (r[5] === 'SI' ? 'Vota' : 'No vota') + '</span></button>';
+    return '<button class="fila" data-i="' + i + '"><span class="av">' + IC.casa + '</span><span class="tx"><b>' + esc(lugar(r)) + '</b>' +
+      '<span>' + esc(String(r[0]).slice(0, 16)) + (r[6] ? ' · ' + esc(r[6]) : '') + '</span></span>' +
+      '<span class="chip ' + (r[1] === 'SI' ? 'si' : 'no') + '">' + (r[1] === 'SI' ? 'Vive' : 'No vive') + '</span></button>';
   }
   function pintarEncuestas(c) {
-    c.innerHTML = '<div class="barra-acc"><input class="input" id="admBusca" placeholder="Buscar por nombre, documento, teléfono o zona" value="' + esc(st.filtro) + '" />' +
-      '<div class="tabs" style="margin:0">' + [['', 'Todas'], ['SI', 'Votan'], ['NO', 'No votan']].map(function (x) {
+    c.innerHTML = '<div class="barra-acc"><input class="input" id="admBusca" placeholder="Buscar por barrio o por la primera respuesta" value="' + esc(st.filtro) + '" />' +
+      '<div class="tabs" style="margin:0">' + [['', 'Todas'], ['SI', 'Viven en Flandes'], ['NO', 'No viven']].map(function (x) {
         return '<button class="tab" data-v="' + x[0] + '" aria-selected="' + (st.vota === x[0]) + '">' + x[1] + '</button>'; }).join('') + '</div></div><div id="admLista"></div>';
     var pinta = function () {
       var F = filtradas(), h = '<p class="ayuda" style="margin-bottom:8px">' + F.length + ' encuesta(s)</p>';
@@ -170,17 +172,15 @@
   }
   function ficha(r) {
     var c = cuerpo(), y = window.scrollY;
+    /* cabecera al instante con lo que ya trae la fila; las respuestas después */
     c.innerHTML = '<button class="btn btn-sec" id="admAtras" style="margin-bottom:12px">' + IC.atras + '<span>Volver</span></button>' +
-      '<div class="card"><div style="display:flex;gap:12px;align-items:center"><span class="av" style="width:52px;height:52px;font-size:18px">' + esc(iniciales(r[2])) + '</span>' +
-      '<div style="flex:1;min-width:0"><h2 style="margin:0">' + esc(r[2]) + '</h2><span class="ayuda">CC ' + esc(r[1]) + ' · Tel. ' + esc(r[3]) + '</span></div>' +
-      '<span class="chip ' + (r[5] === 'SI' ? 'si' : 'no') + '">' + (r[5] === 'SI' ? 'Vota en Flandes' : 'No vota en Flandes') + '</span></div>' +
-      '<p class="ayuda" style="margin-top:10px">' + esc(r[4]) + ' · ' + esc(r[0]) + ' · ' + esc(r[7]) + '</p></div>' +
+      '<div class="card"><div style="display:flex;gap:12px;align-items:center"><span class="av" style="width:52px;height:52px">' + IC.casa + '</span>' +
+      '<div style="flex:1;min-width:0"><h2 style="margin:0">' + esc(lugar(r)) + '</h2><span class="ayuda">' + esc(r[0]) + ' · ' + esc(r[4]) + '</span></div>' +
+      '<span class="chip ' + (r[1] === 'SI' ? 'si' : 'no') + '">' + (r[1] === 'SI' ? 'Vive en Flandes' : 'No vive en Flandes') + '</span></div></div>' +
       '<div class="card" id="admResp"><div class="esq"></div><div class="esq"></div><div class="esq"></div></div>';
     window.scrollTo({ top: 0 });
     document.getElementById('admAtras').addEventListener('click', function () { pintar(); window.scrollTo({ top: y }); });
-    var completa = st.completas && st.completas.filter(function (x) { return x[1] === r[1]; })[0];
-    if (completa) return pintaResp(completa.slice(6, 19));
-    pedir('admin.ficha', { fila: r[6], doc: r[1] }).then(function (j) { pintaResp(j.data.respuestas); })
+    pedir('admin.ficha', { fila: r[3], rid: r[5] }).then(function (j) { pintaResp(j.data.respuestas); })
       .catch(function (e) { if (!e.cortado) { var a = document.getElementById('admResp'); if (a) a.innerHTML = '<div class="vacio">' + esc(e.message) + '</div>'; } });
     function pintaResp(resp) {
       var a = document.getElementById('admResp'); if (!a) return;
@@ -210,9 +210,9 @@
     var lista = document.getElementById('admRespLista');
     var pinta = function () {
       var q = sinTilde(st.buscaR).trim(), i = st.preg;
-      var F = st.completas.filter(function (r) { var t = r[6 + i]; return t && (!q || sinTilde(t).indexOf(q) >= 0); });
+      var F = st.completas.filter(function (r) { var t = r[3 + i]; return t && (!q || sinTilde(t).indexOf(q) >= 0); });
       var h = '<p class="ayuda" style="margin:6px 0">' + F.length + ' respuesta(s) de ' + st.completas.length + ' encuestas</p>';
-      h += F.slice(0, 300).map(function (r) { return '<div class="resp"><small>' + esc(r[2]) + ' · ' + esc(r[4]) + '</small><p>' + esc(r[6 + i]) + '</p></div>'; }).join('');
+      h += F.slice(0, 300).map(function (r) { return '<div class="resp"><small>' + esc(lugar(r)) + ' · ' + esc(String(r[0]).slice(0, 16)) + '</small><p>' + esc(r[3 + i]) + '</p></div>'; }).join('');
       if (F.length > 300) h += '<p class="ayuda">Se muestran 300. Use la búsqueda o descargue el Excel para verlas todas.</p>';
       lista.innerHTML = h;
     };
@@ -234,9 +234,9 @@
       return Promise.all([completas(function (h, n) { sp.textContent = 'Preparando ' + h + ' / ' + n + '…'; }),
         window.XLSX ? null : cargarScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js')]);
     }).then(function (r) {
-      var filas = r[0], enc = ['FECHA', 'DOCUMENTO', 'NOMBRE', 'TELÉFONO', 'RESIDENCIA', 'VOTA EN FLANDES'].concat(st.preguntas.map(function (p, i) { return (i + 1) + '. ' + p; }), ['REGISTRO']);
+      var filas = r[0], enc = ['FECHA', 'VIVE EN FLANDES', 'BARRIO, VEREDA O CONJUNTO'].concat(st.preguntas.map(function (p, i) { return (i + 1) + '. ' + p; }), ['REGISTRO']);
       var ws = XLSX.utils.aoa_to_sheet([enc].concat(filas));
-      ws['!cols'] = enc.map(function (h, i) { return { wch: i < 6 ? [19, 13, 30, 13, 24, 10][i] : (i === enc.length - 1 ? 16 : 45) }; });
+      ws['!cols'] = enc.map(function (h, i) { return { wch: i < 3 ? [19, 10, 28][i] : (i === enc.length - 1 ? 16 : 45) }; });
       var wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Encuestas');
       var hoy = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota' }).format(new Date());
       XLSX.writeFile(wb, 'DOFA_Encuestas_Jhonny_Perdomo_' + hoy + '.xlsx');
